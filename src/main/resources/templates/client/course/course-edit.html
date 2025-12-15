@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+  <body>
+    <div th:fragment="content">
+      <main class="rbt-main-wrapper">
+        <div class="rbt-create-course-area bg-color-white rbt-section-gap">
+          <div class="container">
+            <div class="row g-5">
+              <div class="col-lg-8">
+                <form
+                  id="create-course-form"
+                  th:action="@{/instructor/update-course}"
+                  th:object="${course}"
+                  method="post"
+                  enctype="multipart/form-data"
+                >
+                  <div class="rbt-accordion-style rbt-accordion-01 rbt-accordion-06 accordion">
+                    <div class="accordion" id="tutionaccordionExamplea1">
+                      <!-- Thông tin cơ bản khóa học -->
+                      <div th:replace="~{client/course/course-info :: course-info}"></div>
+
+                      <!-- Các chương, bài học và tài liệu -->
+                      <div th:replace="~{client/course/course-builder :: course-builder}"></div>
+                    </div>
+                  </div>
+
+                  <div class="mt--10 row g-5 d-flex justify-content-end">
+                    <div class="col-lg-6" th:if="${course.status == 'draft'}">
+                      <a
+                        class="rbt-btn hover-icon-reverse bg-primary-opacity w-100 text-center"
+                        th:href="@{/instructor/request-approve-course/{id}(id=${course.courseId})}"
+                        onclick="return confirm('Bạn có chắc chắn muốn gửi yêu cầu phê duyệt khóa học này không?')"
+                      >
+                        <span class="icon-reverse-wrapper">
+                          <span class="btn-text">Yêu cầu phê duyệt</span>
+                          <span class="btn-icon"><i class="feather-send"></i></span>
+                          <span class="btn-icon"><i class="feather-send"></i></span>
+                        </span>
+                      </a>
+                    </div>
+                    <div class="col-lg-6" th:if="${course.status == 'pending'}">
+                      <a class="rbt-btn bg-secondary w-100 text-center">
+                        <span class="btn-text">Đang chờ phê duyệt</span>
+                        <span class="btn-icon"><i class="feather-clock"></i></span>
+                      </a>
+                    </div>
+                    <div class="col-lg-12" th:if="${course.status == 'publish'}">
+                      <a class="rbt-btn bg-success w-100 text-center">
+                        <span class="btn-text">Không thể chỉnh sửa khi khóa học đã được công khai</span>
+                        <span class="btn-icon"><i class="feather-check-circle"></i></span>
+                      </a>
+                    </div>
+                    <div class="col-lg-6" th:if="${course.status == 'hidden'}">
+                      <a class="rbt-btn bg-danger w-100 text-center">
+                        <span class="btn-text">Đang bị ẩn</span>
+                        <span class="btn-icon"><i class="feather-eye-off"></i></span>
+                      </a>
+                    </div>
+                    <div class="col-lg-6" th:unless="${course.status == 'publish'}">
+                      <!-- Dữ liệu course, file image, file attachments gửi về backend dưới dạng JSON -->
+                      <input type="hidden" name="courseJson" id="courseJson" />
+                      <input type="hidden" name="_method" value="put" />
+                      <button type="submit" class="rbt-btn btn-gradient hover-icon-reverse w-100 text-center">
+                        <span class="icon-reverse-wrapper">
+                          <span class="btn-text">Lưu khóa học</span>
+                          <span class="btn-icon"><i class="feather-arrow-right"></i></span>
+                          <span class="btn-icon"><i class="feather-arrow-right"></i></span>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <br />
+                <div class="col-lg-12">
+                  <form
+                    th:action="@{/instructor/clone-course}"
+                    onsubmit="return confirm('Bạn có muốn tạo bản sao không?')"
+                    method="post"
+                  >
+                    <input type="hidden" name="courseId" th:value="${course.courseId}" />
+                    <button type="submit" class="rbt-btn bg-info w-100 text-center">
+                      <span class="btn-text">Tạo bản sao</span>
+                      <span class="btn-icon"><i class="feather-copy"></i></span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <div class="rbt-create-course-sidebar course-sidebar sticky-top rbt-shadow-box rbt-gradient-border">
+                  <div class="inner">
+                    <div class="section-title mb--30">
+                      <h4 class="title">Mẹo Tải Lên Khóa Học</h4>
+                    </div>
+                    <div class="rbt-course-upload-tips">
+                      <ul class="rbt-list-style-1">
+                        <li><i class="feather-check"></i> Đặt giá cho khóa học hoặc để miễn phí.</li>
+                        <li><i class="feather-check"></i> Kích thước chuẩn cho ảnh đại diện khóa học là 700x430.</li>
+                        <li><i class="feather-check"></i> Phần video điều khiển video tổng quan về khóa học.</li>
+                        <li>
+                          <i class="feather-check"></i> Trình tạo khóa học là nơi bạn tạo và sắp xếp nội dung khóa học.
+                        </li>
+                        <li>
+                          <i class="feather-check"></i> Thêm các chủ đề trong phần Trình tạo khóa học để tạo bài học,
+                          bài kiểm tra và bài tập.
+                        </li>
+                        <li>
+                          <i class="feather-check"></i> Yêu cầu tiên quyết là các khóa học cơ bản cần hoàn thành trước
+                          khi học khóa này.
+                        </li>
+                        <li>
+                          <i class="feather-check"></i> Thông tin từ phần Dữ liệu bổ sung sẽ hiển thị trên trang chi
+                          tiết khóa học.
+                        </li>
+                        <li><i class="feather-check"></i> Dung lượng tối đã mỗi file là 10 mb.</li>
+                        <li><i class="feather-check"></i> Tổng dung lượng tối đa các file tải lên là 100 mb</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div th:replace="~{client/course/module-model :: module-model}"></div>
+
+        <div th:replace="~{client/course/lesson-model :: lesson-model}"></div>
+
+        <div th:replace="~{client/course/quiz-model :: quiz-model}"></div>
+
+        <div class="rbt-separator-mid">
+          <div class="container">
+            <hr class="rbt-separator m-0" />
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <th:block th:fragment="scripts">
+      <script th:src="@{/assets/js/course.js}"></script>
+      <script th:src="@{/assets/js/module.js}"></script>
+      <script th:src="@{/assets/js/lesson.js}"></script>
+      <script th:src="@{/assets/js/quiz.js}"></script>
+      <script th:inline="javascript">
+        /*<![CDATA[*/
+        const courseData = /*[[${course}]]*/ {};
+
+        // Chỉ gán dữ liệu nếu localStorage chưa có (tức là lần đầu load)
+        if (!localStorage.getItem("modules")) {
+          localStorage.setItem(
+            "modules",
+            JSON.stringify(
+              courseData.modules.map((m) => ({
+                moduleId: m.moduleId,
+                moduleTitle: m.moduleTitle,
+              }))
+            )
+          );
+        }
+
+        if (!localStorage.getItem("lecturesPerModule")) {
+          localStorage.setItem(
+            "lecturesPerModule",
+            JSON.stringify(Object.fromEntries(courseData.modules.map((m, i) => [i, m.lectures])))
+          );
+        }
+
+        if (!localStorage.getItem("quizzesPerModule")) {
+          localStorage.setItem(
+            "quizzesPerModule",
+            JSON.stringify(Object.fromEntries(courseData.modules.map((m, i) => [i, m.quizzes])))
+          );
+        }
+
+        // === THÊM VÀO SAU CÙNG ===
+        modules = Storage.get("modules", []);
+        lecturesPerModule = Storage.get("lecturesPerModule", {});
+        quizzesPerModule = Storage.get("quizzesPerModule", {});
+        /*]]>*/
+
+        document.addEventListener("DOMContentLoaded", function () {
+          const urlParams = new URLSearchParams(window.location.search);
+          const cloneSuccess = urlParams.get("cloneSuccess");
+
+          if (cloneSuccess === "true") {
+            // Hiển thị thông báo thành công (có thể dùng toast, sweetalert2, ...)
+            console.log("Tạo bản sao khóa học thành công");
+
+            // Ví dụ: hiển thị toast đơn giản
+            const toast = document.createElement("div");
+            toast.textContent = "🎉 Tạo bản sao khóa học thành công!";
+            toast.style.position = "fixed";
+            toast.style.bottom = "20px";
+            toast.style.right = "20px";
+            toast.style.padding = "10px 15px";
+            toast.style.backgroundColor = "#4CAF50";
+            toast.style.color = "#fff";
+            toast.style.borderRadius = "6px";
+            toast.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+            document.body.appendChild(toast);
+
+            // Tự động ẩn sau 3s
+            setTimeout(() => {
+              toast.remove();
+            }, 3000);
+          }
+        });
+      </script>
+    </th:block>
+  </body>
+</html>

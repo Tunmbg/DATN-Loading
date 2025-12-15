@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body class="rbt-header-sticky">
+    <div th:fragment="content">
+      <div class="rbt-lesson-area bg-color-white">
+        <div class="rbt-lesson-content-wrapper">
+          <div th:replace="~{client/learning/learning-sidebar :: learning-sidebar}"></div>
+
+          <div class="rbt-lesson-rightsidebar overflow-hidden">
+            <div class="lesson-top-bar">
+              <div class="lesson-top-left">
+                <div class="rbt-lesson-toggle">
+                  <button class="lesson-toggle-active btn-round-white-opacity" title="Toggle Sidebar">
+                    <i class="feather-arrow-left"></i>
+                  </button>
+                </div>
+                <h5 th:text="${quiz.title} + ' - Kết quả'">Result</h5>
+              </div>
+              <div class="lesson-top-right">
+                <div class="rbt-btn-close">
+                  <a
+                    th:href="@{/course-details/{id}(id=${course.courseId})}"
+                    title="Go Back to Course"
+                    class="rbt-round-btn"
+                    ><i class="feather-x"></i
+                  ></a>
+                </div>
+              </div>
+            </div>
+            <div class="inner">
+              <div class="content">
+                <div class="section-title">
+                  <p class="mb--10">Quiz</p>
+                  <!-- <h5>Musical Theory</h5> -->
+                </div>
+                <div th:if="${param.cert}" class="alert alert-success mt-3 fw-semibold text-success">
+                  🎉 Chúc mừng! Bạn đã nhận được chứng chỉ cho khóa học này.
+                  <a th:href="@{/student/student-certificate}" class="ms-2 text-primary fw-bold">Xem chứng chỉ →</a>
+                </div>
+
+                <div class="rbt-dashboard-table table-responsive mobile-table-750 mt--30">
+                  <table class="rbt-table rbt-table-scroll table table-borderless">
+                    <thead>
+                      <tr>
+                        <th>Ngày</th>
+                        <th>Câu hỏi</th>
+                        <th>Tổng điểm</th>
+                        <th>Số câu đúng</th>
+                        <th>Số câu sai</th>
+                        <th>Điểm đạt được</th>
+                        <th>Kết quả</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:if="${latestSubmission != null}">
+                        <th>
+                          <p class="b3 mb--5" th:text="${#dates.format(latestSubmission.submittedAt, 'yyyy-MM-dd')}">
+                            2024-12-26
+                          </p>
+                        </th>
+                        <td>
+                          <p class="b3" th:text="${#lists.size(quiz.questions)}">4</p>
+                        </td>
+                        <td>
+                          <p class="b3" th:text="${quiz.totalScore}">8</p>
+                        </td>
+                        <td>
+                          <p th:text="${correctAnswers}"></p>
+                        </td>
+
+                        <td>
+                          <p th:text="${incorrectAnswers}"></p>
+                        </td>
+
+                        <td>
+                          <p th:text="${(quiz.totalScore/#lists.size(quiz.questions)) * correctAnswers}"></p>
+                        </td>
+                        <td>
+                          <span
+                            class="rbt-badge-5 bg-color-success-opacity color-success"
+                            th:if="${latestSubmission.score >= totalScore / 2}"
+                          >
+                            Pass
+                          </span>
+                          <span
+                            class="rbt-badge-5 bg-color-danger-opacity color-danger"
+                            th:if="${latestSubmission.score < totalScore / 2}"
+                          >
+                            Fail
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div
+                  class="rbt-dashboard-table table-responsive mobile-table-750 mt--50 quiz-result-enter quiz-result-enter-active"
+                >
+                  <table class="rbt-table rbt-table-scroll table table-borderless">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Câu hỏi</th>
+                        <th>Câu trả lời</th>
+                        <th>Đáp án đúng</th>
+                        <th>Kết quả</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="item, iterStat : ${latestSubmission.answers}">
+                        <td>
+                          <p class="b3" th:text="${iterStat.index + 1}"></p>
+                        </td>
+
+                        <td>
+                          <p class="b3" th:text="${questionMap[item.questionId].questionText}"></p>
+                        </td>
+
+                        <td>
+                          <p class="b3" th:text="${optionMap[item.selectedOptionId].optionText}"></p>
+                        </td>
+
+                        <td>
+                          <p class="b3" th:text="${correctOptionMap[item.questionId].optionText}"></p>
+                        </td>
+
+                        <td>
+                          <span th:if="${item.isCorrect}" class="rbt-badge-5 bg-color-success-opacity color-success">
+                            Correct
+                          </span>
+                          <span th:if="${!item.isCorrect}" class="rbt-badge-5 bg-color-danger-opacity color-danger">
+                            Incorrect
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-color-extra2 ptb--15 overflow-hidden">
+              <div class="rbt-button-group">
+                <a class="rbt-btn icon-hover icon-hover-left btn-md bg-primary-opacity" href="#">
+                  <span class="btn-icon"><i class="feather-arrow-left"></i></span>
+                  <span class="btn-text">Previous</span>
+                </a>
+
+                <a class="rbt-btn icon-hover btn-md" href="#">
+                  <span class="btn-text">Next</span>
+                  <span class="btn-icon"><i class="feather-arrow-right"></i></span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rbt-progress-parent">
+        <svg class="rbt-back-circle svg-inner" width="100%" height="100%" viewBox="-1 -1 102 102">
+          <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+        </svg>
+      </div>
+    </div>
+  </body>
+
+  <!-- Mirrored from rainbowit.net/html/histudy/lesson-quiz-result.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 06 Jun 2025 15:46:20 GMT -->
+</html>

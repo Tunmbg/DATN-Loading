@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div id="main" th:fragment="content">
+      <header class="mb-3">
+        <a href="#" class="burger-btn d-block d-xl-none">
+          <i class="bi bi-justify fs-3"></i>
+        </a>
+      </header>
+
+      <div class="page-heading">
+        <div class="page-title">
+          <div class="row">
+            <div class="col-12 col-md-6 order-md-1 order-last">
+              <h3>Danh sách giảng viên, học viên</h3>
+            </div>
+            <div class="col-12 col-md-6 order-md-2 order-first">
+              <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Tổng quan</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Danh sách giảng viên, học viên</li>
+                </ol>
+              </nav>
+            </div>
+          </div>
+        </div>
+        <section class="section">
+          <div class="card">
+            <div class="card-header">
+              <a th:href="@{/admin/account/user/new}" class="btn btn-primary">Thêm tài khoản</a>
+              <form
+                id="excel-form"
+                th:action="@{/import-excel-users-account}"
+                method="post"
+                enctype="multipart/form-data"
+                style="display: inline-block"
+              >
+                <!-- Nút "Nhập Excel" -->
+                <button type="button" class="btn btn-primary" onclick="triggerFileInput()">Nhập Excel</button>
+
+                <!-- Input file ẩn đi -->
+                <input
+                  type="file"
+                  name="file"
+                  accept=".xlsx, .xls"
+                  class="form-control"
+                  id="file-upload"
+                  style="display: none"
+                  onchange="submitForm()"
+                />
+              </form>
+              <a class="btn btn-primary" th:href="@{/admin/account/download-excel-template}">Tải file mẫu</a>
+            </div>
+            <div class="card-body">
+              <table class="table table-striped" id="table1">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>SĐT</th>
+                    <th>Chức vụ</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="user, stat : ${users}">
+                    <td th:text="${stat.index + 1}"></td>
+                    <td th:text="${user.fullname}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.phoneNumber}"></td>
+                    <td th:text="${user.occupation}"></td>
+                    <td>
+                      <p th:each="role : ${user.roles}" th:text="${role.roleName}"></p>
+                    </td>
+                    <td>
+                      <span class="badge bg-success" th:if="${user.status}">Active</span>
+                      <span class="badge bg-danger" th:unless="${user.status}">Inactive</span>
+                    </td>
+                    <td>
+                      <a th:href="@{'/admin/account/user/edit/' + ${user.id}}" class="btn btn-warning btn-sm">Sửa</a>
+                      <form
+                        th:action="@{'/admin/account/user/resetPassword/' + ${user.id}}"
+                        onsubmit="return confirm('Bạn có chắc chắn muốn đặt lại mật khẩu cho tài khoản này?')"
+                        method="post"
+                        style="display: inline"
+                      >
+                        <input type="hidden" name="_method" value="put" />
+                        <button type="submit" class="btn btn-warning btn-sm">Đặt lại mật khẩu</button>
+                      </form>
+                      <form
+                        th:action="@{'/admin/account/user/changeStatus/' + ${user.id}}"
+                        onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái của tài khoản này?')"
+                        method="post"
+                        style="display: inline"
+                      >
+                        <input type="hidden" name="_method" value="put" />
+                        <button type="submit" class="btn btn-danger btn-sm" th:if="${user.status}">Vô hiệu hóa</button>
+                        <button type="submit" class="btn btn-info btn-sm" th:unless="${user.status}">Kích hoạt</button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Modal Preview Excel -->
+      <div
+        class="modal fade"
+        id="excelPreviewModal"
+        tabindex="-1"
+        aria-labelledby="excelPreviewModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="excelPreviewModalLabel">Xem trước dữ liệu Excel</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table table-bordered" id="preview-table">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-success" onclick="confirmAndSubmit()">Xác nhận và nhập dữ liệu</button>
+              <button class="btn btn-secondary" data-bs-dismiss="modal" onclick="cancelUpload()">Hủy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Container -->
+      <div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+        <div
+          id="toast-message"
+          class="toast align-items-center text-white bg-success border-0"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div class="d-flex">
+            <div class="toast-body" id="toast-body">
+              <!-- Nội dung sẽ được set bằng JS -->
+            </div>
+            <button
+              type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast"
+              aria-label="Close"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+      <script>
+        // Simple Datatable
+        let table1 = document.querySelector("#table1");
+        let dataTable = new simpleDatatables.DataTable(table1);
+
+        function triggerFileInput() {
+          document.getElementById("file-upload").click(); // Kích hoạt sự kiện click cho input file ẩn
+        }
+
+        function submitForm() {
+          const fileInput = document.getElementById("file-upload");
+          const file = fileInput.files[0];
+
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+            showPreview(json);
+          };
+          reader.readAsArrayBuffer(file);
+        }
+
+        function showPreview(data) {
+          if (data.length === 0) return;
+
+          const table = document.getElementById("preview-table");
+          const thead = table.querySelector("thead");
+          const tbody = table.querySelector("tbody");
+
+          thead.innerHTML = "";
+          tbody.innerHTML = "";
+
+          // Render header
+          const headerRow = document.createElement("tr");
+          data[0].forEach((cell) => {
+            const th = document.createElement("th");
+            th.textContent = cell;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+
+          // Render data rows
+          for (let i = 1; i < data.length; i++) {
+            const row = document.createElement("tr");
+            data[i].forEach((cell) => {
+              const td = document.createElement("td");
+              td.textContent = cell;
+              row.appendChild(td);
+            });
+            tbody.appendChild(row);
+          }
+
+          // Mở modal bằng Bootstrap
+          const modal = new bootstrap.Modal(document.getElementById("excelPreviewModal"));
+          modal.show();
+        }
+
+        function confirmAndSubmit() {
+          document.getElementById("excel-form").submit();
+        }
+
+        function cancelUpload() {
+          document.getElementById("file-upload").value = "";
+          document.getElementById("excel-preview").style.display = "none";
+        }
+
+        window.addEventListener("DOMContentLoaded", function () {
+          const urlParams = new URLSearchParams(window.location.search);
+          let toastBody = document.getElementById("toast-body");
+          let toastElement = document.getElementById("toast-message");
+
+          if (urlParams.has("createSuccess")) {
+            toastBody.textContent = "Tạo tài khoản thành công!";
+            toastElement.classList.remove("bg-danger");
+            toastElement.classList.add("bg-success");
+            new bootstrap.Toast(toastElement).show();
+          }
+
+          if (urlParams.has("createError")) {
+            toastBody.textContent = "Tạo tài khoản thất bại!";
+            toastElement.classList.remove("bg-success");
+            toastElement.classList.add("bg-danger");
+            new bootstrap.Toast(toastElement).show();
+          }
+
+          if (urlParams.has("updateSuccess")) {
+            toastBody.textContent = "Cập nhật khoản thành công!";
+            toastElement.classList.remove("bg-danger");
+            toastElement.classList.add("bg-success");
+            new bootstrap.Toast(toastElement).show();
+          }
+
+          if (urlParams.has("updateError")) {
+            toastBody.textContent = "Cập nhật khoản thất bại!";
+            toastElement.classList.remove("bg-success");
+            toastElement.classList.add("bg-danger");
+            new bootstrap.Toast(toastElement).show();
+          }
+
+          if (urlParams.has("importStarted")) {
+            toastBody.textContent = "Đang nhập tài khoản từ Excel. Quá trình có thể mất vài phút.";
+            toastElement.classList.remove("bg-danger");
+            toastElement.classList.add("bg-info");
+            new bootstrap.Toast(toastElement).show();
+          }
+        });
+      </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    </th:block>
+  </body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <th:block th:fragment="header-styles">
+      <style>
+        .subcategories .subcategory {
+          display: none;
+          /* Mặc định, ẩn tất cả danh mục con */
+        }
+
+        .subcategories .subcategory.active {
+          display: block !important;
+          /* Hiển thị danh mục con khi có lớp active */
+        }
+
+        .parent-list li {
+          cursor: pointer;
+          /* Thêm con trỏ chuột vào mục cha */
+        }
+
+        /* Thêm hiệu ứng cho hover */
+        .parent-list li:hover {
+          background-color: #f0f0f0;
+          /* Màu nền khi hover */
+        }
+
+        /* Làm cho chữ trong danh mục con giống chữ trong danh mục chính */
+        .subcategory a {
+          font-size: 14px;
+          /* Kích thước chữ nhỏ hơn một chút */
+          color: #666;
+          /* Màu chữ xám giống với danh mục */
+          text-decoration: none;
+          /* Bỏ gạch dưới cho chữ */
+          font-weight: normal;
+          /* Đảm bảo font chữ giống với danh mục chính */
+        }
+
+        /* Loại bỏ dấu chấm đầu mỗi mục con */
+        .subcategory {
+          list-style-type: none;
+          /* Loại bỏ dấu chấm */
+          padding-left: 0;
+          /* Xóa lề trái của danh sách */
+        }
+
+        /* Đảm bảo các mục cha (Danh mục) có kiểu giống nhau */
+        .parent-list li a {
+          font-size: 16px;
+          /* Đảm bảo kích thước chữ giống với mục con */
+          color: #333;
+          /* Màu chữ giống mục con */
+          text-decoration: none;
+          /* Bỏ gạch dưới */
+          font-weight: normal;
+          /* Đảm bảo font chữ giống mục con */
+        }
+
+        .parent-list li {
+          list-style-type: none;
+          /* Loại bỏ dấu chấm đầu mỗi mục cha */
+          padding-left: 0;
+          /* Xóa lề trái của danh sách */
+        }
+
+        /* Tùy chọn để thay đổi màu sắc của các mục khi hover */
+        .parent-list li a:hover,
+        .subcategory a:hover {
+          color: #007bff;
+          /* Màu chữ khi hover */
+        }
+      </style>
+    </th:block>
+  </head>
+
+  <body>
+    <header th:fragment="header">
+      <!-- Start Header Area -->
+      <header class="rbt-header rbt-header-9">
+        <div class="rbt-sticky-placeholder"></div>
+
+        <!-- Start Header Top -->
+        <div class="rbt-header-middle position-relative rbt-header-mid-1 bg-color-white rbt-border-bottom">
+          <div class="container">
+            <div class="rbt-header-sec align-items-center">
+              <div class="rbt-header-sec-col rbt-header-left">
+                <div class="rbt-header-content"></div>
+              </div>
+
+              <div class="rbt-header-sec-col rbt-header-center d-none d-md-block">
+                <div class="rbt-header-content">
+                  <div class="header-info">
+                    <div class="rbt-search-field">
+                      <div class="search-field">
+                        <form th:action="@{/courses}" method="get">
+                          <input type="text" name="keyword" placeholder="Tìm kiếm khoá học" />
+                          <button class="rbt-round-btn serach-btn" type="submit">
+                            <i class="feather-search"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rbt-header-sec-col rbt-header-right">
+                <div class="rbt-header-content">
+                  <!-- <div class="header-info">
+                  <ul class="quick-access">
+                    <li>
+                      <a class="d-none d-xl-block rbt-cart-sidenav-activation" th:href="@{/cart}">
+                        <i class="feather-shopping-cart"></i>
+                        Giỏ hàng
+                      </a>
+                      <a class="d-block d-xl-none rbt-cart-sidenav-activation" th:href="@{/cart}">
+                        <i class="feather-shopping-cart"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </div> -->
+
+                  <!-- is login -->
+                  <div class="header-info" sec:authorize="isAuthenticated()">
+                    <ul class="quick-access">
+                      <li class="account-access rbt-user-wrapper right-align-dropdown d-none d-xl-block">
+                        <a href="#">
+                          <i class="feather-user"></i>
+                          <span sec:authentication="name"></span>
+                        </a>
+                        <div class="rbt-user-menu-list-wrapper">
+                          <div class="inner">
+                            <div class="rbt-admin-profile">
+                              <div class="admin-thumbnail">
+                                <img th:src="@{/assets/images/team/avatar.jpg}" alt="User Images" />
+                              </div>
+                              <div class="admin-info">
+                                <span sec:authentication="name" class="name">RainbowIT</span>
+                                <a class="rbt-btn-link color-primary" th:href="@{/student/student-profile}"
+                                  >Xem hồ sơ</a
+                                >
+                              </div>
+                            </div>
+                            <ul class="user-list-wrapper">
+                              <li>
+                                <a
+                                  th:href="@{/student/student-dashboard}"
+                                  sec:authorize="not hasAnyRole('ROLE_INSTRUCTOR', 'ROLE_ADMIN')"
+                                >
+                                  <i class="feather-home"></i><span>Bảng điều khiển</span>
+                                </a>
+                                <a
+                                  th:href="@{/instructor/dashboard}"
+                                  sec:authorize="hasAnyRole('ROLE_INSTRUCTOR', 'ROLE_ADMIN')"
+                                >
+                                  <i class="feather-home"></i><span>Bảng điều khiển</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a th:href="@{/student/student-enrolled-courses}">
+                                  <i class="feather-shopping-bag"></i><span>Khoá học của tôi</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a th:href="@{/student/student-certificate}">
+                                  <i class="feather-list"></i><span>Danh sách chứng chỉ</span>
+                                </a>
+                              </li>
+                              <!-- <li>
+                              <a th:href="@{student/student-order-history}">
+                                <i class="feather-clock"></i><span>Lịch sử mua hàng</span>
+                              </a>
+                            </li> -->
+                              <li>
+                                <a th:href="@{/logout}"> <i class="feather-log-out"></i><span>Đăng xuất</span> </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="access-icon rbt-user-wrapper right-align-dropdown d-block d-xl-none">
+                        <a class="rbt-round-btn" href="#"><i class="feather-user"></i></a>
+                        <div class="rbt-user-menu-list-wrapper">
+                          <div class="inner">
+                            <div class="rbt-admin-profile">
+                              <div class="admin-thumbnail">
+                                <img th:src="@{/assets/images/team/avatar.jpg}" alt="User Images" />
+                              </div>
+                              <div class="admin-info">
+                                <span sec:authentication="name" class="name">RainbowIT</span>
+                                <a class="rbt-btn-link color-primary" th:href="@{student/student-profile}">Xem hồ sơ</a>
+                              </div>
+                            </div>
+                            <ul class="user-list-wrapper">
+                              <li>
+                                <a
+                                  th:href="@{/student/student-dashboard}"
+                                  sec:authorize="hasRole('ROLE_STUDENT') and not hasAnyRole('ROLE_INSTRUCTOR', 'ROLE_ADMIN')"
+                                >
+                                  <i class="feather-home"></i><span>Bảng điều khiển</span>
+                                </a>
+                                <a
+                                  th:href="@{/instructor/dashboard}"
+                                  sec:authorize="hasAnyRole('ROLE_INSTRUCTOR', 'ROLE_ADMIN')"
+                                >
+                                  <i class="feather-home"></i><span>Bảng điều khiển</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a th:href="@{/student/student-enrolled-courses}">
+                                  <i class="feather-shopping-bag"></i><span>Khoá học của tôi</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a th:href="@{/student/student-certificate}">
+                                  <i class="feather-list"></i><span>Danh sách chứng chỉ</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a th:href="@{/student/student-order-history}">
+                                  <i class="feather-clock"></i><span>Lịch sử mua hàng</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a th:href="@{/logout}"> <i class="feather-log-out"></i><span>Đăng xuất</span> </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- non login -->
+                  <div class="header-info" sec:authorize="isAnonymous()">
+                    <ul class="quick-access">
+                      <li class="account-access rbt-user-wrapper right-align-dropdown d-none d-xl-block">
+                        <a th:href="@{/login}">
+                          <i class="feather-user"></i>
+                          Đăng nhập
+                        </a>
+                      </li>
+
+                      <li class="access-icon rbt-user-wrapper right-align-dropdown d-block d-xl-none">
+                        <a class="rbt-round-btn" th:href="@{/login}"><i class="feather-user"></i></a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End Header Top -->
+
+        <div class="rbt-header-wrapper header-not-transparent header-sticky">
+          <div class="container">
+            <div class="mainbar-row rbt-navigation-end align-items-center">
+              <div class="header-left rbt-header-content">
+                <div class="header-info">
+                  <div class="logo logo-dark">
+                    <a th:href="@{/home}">
+                      <img th:src="@{/assets/images/logo/logo-vtt.png}" alt="Education Logo Images" />
+                    </a>
+                  </div>
+
+                  <div class="logo d-none logo-light">
+                    <a th:href="@{/home}">
+                      <img th:src="@{/assets/images/dark/logo/logo-vtt-light.png}" alt="Education Logo Images" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Nội dung của thanh điều hướng chính sẽ được hiển thị ở đây. -->
+              <div class="rbt-main-navigation d-none d-xl-block">
+                <nav class="mainmenu-nav">
+                  <ul class="mainmenu">
+                    <li><a th:href="@{/courses}">Khóa học</a></li>
+                    <li><a th:href="@{/bai-viet}">Bài viết</a></li>
+                    <li><a th:href="@{/contact}">Liên hệ</a></li>
+                    <li><a tH:href="@{/about}">Giới thiệu</a></li>
+                  </ul>
+                </nav>
+              </div>
+
+              <div class="header-right">
+                <div class="rbt-btn-wrapper d-none d-xl-block">
+                  <a class="rbt-btn rbt-switch-btn btn-gradient btn-sm hover-transform-none" href="#">
+                    <span data-text="Tham gia ngay">Tham gia ngay</span>
+                  </a>
+                </div>
+                <!-- Start Mobile-Menu-Bar -->
+                <div class="mobile-menu-bar d-block d-xl-none">
+                  <div class="hamberger">
+                    <button class="hamberger-button rbt-round-btn">
+                      <i class="feather-menu"></i>
+                    </button>
+                  </div>
+                </div>
+                <!-- Start Mobile-Menu-Bar -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <!-- Mobile Menu Section -->
+      <div class="popup-mobile-menu">
+        <div class="inner-wrapper">
+          <div class="inner-top">
+            <div class="content">
+              <div class="logo">
+                <div class="logo logo-dark">
+                  <a th:href="@{/home}">
+                    <img th:src="@{/assets/images/logo/logo-vtt.png}" alt="Education Logo Images" />
+                  </a>
+                </div>
+
+                <div class="logo d-none logo-light">
+                  <a th:href="@{/home}">
+                    <img th:src="@{/assets/images/dark/logo/logo-vtt-light.png}" alt="Education Logo Images" />
+                  </a>
+                </div>
+              </div>
+              <div class="rbt-btn-close">
+                <button class="close-button rbt-round-btn">
+                  <i class="feather-x"></i>
+                </button>
+              </div>
+            </div>
+            <p class="description">Viettutor là mẫu trang web giáo dục. Bạn có thể tùy chỉnh tất cả.</p>
+            <ul class="navbar-top-left rbt-information-list justify-content-start">
+              <li>
+                <a href="mailto:hello@example.com">
+                  <i class="feather-mail"></i>
+                  viettutor@pro.edu.vn
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <i class="feather-phone"></i>
+                  (302) 555-0107
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <nav class="mainmenu-nav">
+            <ul class="mainmenu">
+              <li><a th:href="@{/courses}"> Khoá học </a></li>
+              <li><a th:href="@{/bai-viet}"> Bài viết </a></li>
+              <li><a th:href="@{/contact}"> Liên hệ </a></li>
+              <li><a th:href="@{/about}"> Giới thiệu </a></li>
+            </ul>
+          </nav>
+
+          <div class="mobile-menu-bottom">
+            <div class="rbt-btn-wrapper mb--20">
+              <a
+                class="rbt-btn btn-border-gradient radius-round btn-sm hover-transform-none w-100 justify-content-center text-center"
+                href="#"
+              >
+                <span>Đăng ký ngay</span>
+              </a>
+            </div>
+
+            <div class="social-share-wrapper">
+              <span class="rbt-short-title d-block">Tìm chúng tôi</span>
+              <ul class="social-icon social-default transparent-with-border justify-content-start mt--20">
+                <li>
+                  <a href="https://www.facebook.com/">
+                    <i class="feather-facebook"></i>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.twitter.com/">
+                    <i class="feather-twitter"></i>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.instagram.com/">
+                    <i class="feather-instagram"></i>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.linkdin.com/">
+                    <i class="feather-linkedin"></i>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <th:block th:fragment="header-scripts">
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const parentItems = document.querySelectorAll(".parent-list li[data-category]");
+          const subcategories = document.querySelectorAll(".subcategory");
+
+          // Lắng nghe sự kiện hover vào mỗi mục cha
+          parentItems.forEach((item) => {
+            item.addEventListener("mouseenter", function () {
+              // Ẩn tất cả các danh mục con
+              subcategories.forEach((sub) => {
+                sub.classList.remove("active");
+              });
+
+              // Lấy giá trị category của mục cha và hiển thị danh mục con tương ứng
+              const cat = item.getAttribute("data-category");
+              const sub = document.querySelector('.subcategory[data-category="' + cat + '"]');
+
+              if (sub) {
+                sub.classList.add("active"); // Hiển thị danh mục con tương ứng
+              }
+            });
+
+            // Lắng nghe sự kiện rời chuột khỏi mục cha
+            item.addEventListener("mouseleave", function () {
+              // Không ẩn danh mục con ở đây nữa, vì khi chuột ra ngoài vẫn cần giữ danh mục con hiển thị
+            });
+          });
+
+          // Lắng nghe sự kiện mouseenter cho các danh mục con để giữ chúng hiển thị khi di chuột vào danh mục con
+          subcategories.forEach((sub) => {
+            sub.addEventListener("mouseenter", function () {
+              sub.classList.add("active"); // Giữ danh mục con hiển thị khi chuột vào
+            });
+
+            sub.addEventListener("mouseleave", function () {
+              // Không ẩn ngay danh mục con khi chuột rời khỏi danh mục con
+            });
+          });
+
+          // Ẩn tất cả danh mục con khi chuột rời khỏi vùng danh mục (category-hover-area)
+          const hoverArea = document.querySelector(".category-hover-area");
+          if (hoverArea) {
+            hoverArea.addEventListener("mouseleave", function () {
+              subcategories.forEach((sub) => {
+                sub.classList.remove("active"); // Ẩn tất cả danh mục con khi chuột rời khỏi vùng hover
+              });
+            });
+          }
+        });
+      </script>
+    </th:block>
+  </body>
+</html>
